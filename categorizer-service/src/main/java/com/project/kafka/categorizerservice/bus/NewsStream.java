@@ -1,0 +1,44 @@
+package com.project.kafka.categorizerservice.bus;
+
+
+import com.project.kafka.categorizerservice.service.CategoryService;
+import com.project.kafka.commons.avro.NewsEvent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.stream.annotation.EnableBinding;
+import org.springframework.cloud.stream.annotation.StreamListener;
+import org.springframework.cloud.stream.messaging.Processor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+@EnableBinding(Processor.class)
+public class NewsStream {
+
+    private final CategoryService categoryService;
+
+    public NewsStream(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
+
+    @StreamListener(Processor.INPUT)
+    @SendTo(Processor.OUTPUT)
+    public NewsEvent handleNewsEvent(@Payload NewsEvent newsEvent,
+                                     @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+                                     @Header(KafkaHeaders.RECEIVED_PARTITION_ID) Integer partition,
+                                     @Header(KafkaHeaders.OFFSET) Long offset,
+                                     @Header(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT) Integer deliveryAttempt) {
+        log.info("NewsEvent with id '{}' and title '{}' received from bus. topic: {}, partition: {}, offset: {}, deliveryAttempt: {}",
+                newsEvent.getId(), newsEvent.getTitle(), topic, partition, offset, deliveryAttempt);
+
+        String category = categoryService.categorize(newsEvent.getTitle().toString(), newsEvent.getText().toString());
+        newsEvent.setCategory(category);
+
+        return newsEvent;
+    }
+
+}

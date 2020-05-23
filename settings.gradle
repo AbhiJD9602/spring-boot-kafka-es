@@ -1,0 +1,8 @@
+rootProject.name = 'spring-boot-kafka-es'
+include 'commons-news'
+include 'news-client'
+include 'collector-service'
+include 'eureka-server'
+include 'publisher-api'
+include 'producer-api'
+include 'categorizer-service'

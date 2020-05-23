@@ -1,0 +1,43 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+    dependencies {
+        //plugin needed to generate POJO from Avro schema
+        classpath("com.commercehub.gradle.plugin:gradle-avro-plugin:0.14.2")
+    }
+}
+
+//dont forget to add plugin
+apply plugin: "maven"
+apply plugin: 'java'
+apply plugin: "com.commercehub.gradle.plugin.avro-base"
+group 'com.project.kafka'
+version '0.0.1-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.apache.avro:avro:1.8.2'
+    compile 'org.springframework.boot:spring-boot-starter-web:2.2.5.RELEASE'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+avro {
+    createSetters = false
+    fieldVisibility = "PRIVATE"
+}
+task generateAvro(type: com.commercehub.gradle.plugin.avro.GenerateAvroJavaTask) {
+    //point plugin to folder with avro schemas
+    source("src/main/resources/avro")
+    //point plugin to folder with generated POJOs
+    outputDir = file("src/main/java")
+}
+
+compileJava.source(generateAvro.outputs)

@@ -1,0 +1,37 @@
+spring:
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:29092}
+          auto-add-partitions: true
+          min-partition-count: 2
+      bindings:
+        input:
+          destination: kafka.newspipeline.collector.news
+          content-type: application/*+avro
+          group: newsClientGroup
+          consumer:
+            max-attempts: 4
+            back-off-initial-interval: 10000
+  sleuth:
+    sampler:
+      probability: 1.0
+
+management:
+  endpoints:
+    web:
+      exposure.include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka
+  instance:
+    preferIpAddress: true
+
+server:
+   port: 9083
